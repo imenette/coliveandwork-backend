@@ -8,62 +8,80 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+// Déclaration de l'entité Doctrine liée à la table 'coliving_space'
 #[ORM\Entity(repositoryClass: ColivingSpaceRepository::class)]
 #[ORM\Table(name: 'coliving_space')]
 class ColivingSpace
 {
+    // Identifiant unique auto-généré
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    // Titre du coliving (ex: "Maison partagée Lyon")
     #[ORM\Column(length: 100)]
     private ?string $titleColivingSpace = null;
 
+    // Description complète du coliving
     #[ORM\Column(type: Types::TEXT)]
     private ?string $descriptionColivingSpace = null;
 
+    // Type de logement (ex: appartement, maison)
     #[ORM\Column(length: 50)]
     private ?string $housingType = null;
 
+    // Nombre total de pièces
     #[ORM\Column]
     private ?int $roomCount = null;
 
+    // Surface totale en m²
     #[ORM\Column(type: Types::DECIMAL, precision: 6, scale: 2)]
     private ?string $totalAreaM2 = null;
 
+    // Capacité maximale en nombre de personnes
     #[ORM\Column]
     private ?int $capacityMax = null;
 
+    // Date de création de l'enregistrement
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    // Date de mise à jour (optionnelle)
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    // Statut actif ou non (true par défaut)
     #[ORM\Column(options: ['default' => true])]
     private ?bool $isActive = true;
 
+    // Liste des espaces privés liés à ce coliving (relation OneToMany)
     #[ORM\OneToMany(targetEntity: PrivateSpace::class, mappedBy: 'colivingSpace')]
     private Collection $privateSpaces;
 
+    // Adresse associée au coliving (relation ManyToOne)
     #[ORM\ManyToOne(inversedBy: 'colivingSpaces')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Address $address = null;
 
+    // Propriétaire du coliving (relation ManyToOne)
     #[ORM\ManyToOne(inversedBy: 'colivingSpaces')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $owner = null;
 
+    // Photos liées au coliving (relation OneToMany)
     #[ORM\OneToMany(targetEntity: Photo::class, mappedBy: 'colivingSpace', orphanRemoval: true)]
     private Collection $photos;
 
+    // Vérifications liées au coliving (relation OneToMany)
     #[ORM\OneToMany(targetEntity: VerificationSpace::class, mappedBy: 'colivingSpace', orphanRemoval: true)]
     private Collection $verificationSpaces;
 
+    // Commodités associées à ce coliving (relation ManyToMany inversée)
     #[ORM\ManyToMany(targetEntity: Amenity::class, mappedBy: 'colivingSpaces')]
     private Collection $amenities;
 
+    // Constructeur : initialise toutes les collections
     public function __construct()
     {
         $this->privateSpaces = new ArrayCollection();
@@ -71,6 +89,8 @@ class ColivingSpace
         $this->verificationSpaces = new ArrayCollection();
         $this->amenities = new ArrayCollection();
     }
+
+    // Getters et setters pour chaque propriété
 
     public function getId(): ?int { return $this->id; }
 
@@ -140,18 +160,19 @@ class ColivingSpace
         return $this;
     }
 
-    /** @return Collection<int, PrivateSpace> */
+    /** Retourne les espaces privés liés à ce coliving */
     public function getPrivateSpaces(): Collection { return $this->privateSpaces; }
 
-    /** @return Collection<int, Photo> */
+    /** Retourne les photos liées à ce coliving */
     public function getPhotos(): Collection { return $this->photos; }
 
-    /** @return Collection<int, VerificationSpace> */
+    /** Retourne les vérifications liées à ce coliving */
     public function getVerificationSpaces(): Collection { return $this->verificationSpaces; }
 
-    /** @return Collection<int, Amenity> */
+    /** Retourne les commodités liées à ce coliving */
     public function getAmenities(): Collection { return $this->amenities; }
 
+    /** Ajoute une commodité à ce coliving et synchronise l’autre côté de la relation */
     public function addAmenity(Amenity $amenity): static {
         if (!$this->amenities->contains($amenity)) {
             $this->amenities->add($amenity);
@@ -160,6 +181,7 @@ class ColivingSpace
         return $this;
     }
 
+    /** Retire une commodité de ce coliving et synchronise l’autre côté de la relation */
     public function removeAmenity(Amenity $amenity): static {
         if ($this->amenities->removeElement($amenity)) {
             $amenity->removeColivingSpace($this); // synchronisation bidirectionnelle
