@@ -93,6 +93,7 @@ class User
         $this->verificationUsers = new ArrayCollection();
         $this->verificationSpaces = new ArrayCollection();
         $this->userVerificationSpaces = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int { return $this->id; }
